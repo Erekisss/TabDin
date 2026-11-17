@@ -1,6 +1,8 @@
+<p align="center"><img src="public/logo-mark.svg" width="96" alt="TabDin"></p>
+
 # TabDin
 
-Gestão financeira pessoal com **Open Finance Brasil**, dashboards e um **cofre de senhas zero‑knowledge** para logins e cartões. Interface em azul escuro, inspirada no iOS.
+Gestão financeira pessoal com **Open Finance Brasil**, o assistente de IA **Din**, dashboards e um **cofre de senhas zero‑knowledge** para logins e cartões. Interface azul-marinho com acento esmeralda, inspirada no iOS e instalável no celular (PWA).
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-000?logo=nextdotjs) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth-3ecf8e?logo=supabase) ![Tailwind](https://img.shields.io/badge/Tailwind-v4-38bdf8?logo=tailwindcss) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript)
 
@@ -9,7 +11,8 @@ Gestão financeira pessoal com **Open Finance Brasil**, dashboards e um **cofre 
 | Módulo | O que faz |
 |---|---|
 | **Autenticação** | Cadastro e login com e-mail e senha (Supabase Auth). Cada usuário tem sua própria senha e enxerga só os próprios dados. |
-| **Dashboard** | Saldo total, receitas e despesas do mês, fluxo de caixa de 6 meses, gastos por categoria e orçamentos com alerta de estouro. |
+| **Din (assistente IA)** | Chat em linguagem natural sobre suas finanças: "quanto gastei com iFood?", "compare com o mês passado", "quais assinaturas eu pago?". Usa Claude com ferramentas de leitura sobre os dados do próprio usuário (RLS). Sem chave de API, roda em modo básico com respostas por intenção. |
+| **Dashboard** | Saldo consolidado, variação vs. mês anterior, fluxo de caixa de 6 meses, gastos por categoria, orçamentos e **assinaturas detectadas automaticamente**. |
 | **Transações** | Lançamentos manuais, filtro por mês, tipo e busca, recategorização inline. |
 | **Contas** | Contas corrente, poupança, cartão, investimento e carteira; o saldo das contas manuais é atualizado por trigger no banco. |
 | **Open Finance** | Conexão com bancos reais via [Pluggy](https://pluggy.ai) (widget oficial), importação de contas e transações com categorização automática. Um **Banco Demo** gera dados simulados para quem quiser testar sem conectar nada. |
@@ -39,6 +42,8 @@ item {título, usuário, senha, ...} ──AES-GCM + IV aleatório──▶ { ci
 - **Next.js 16** (App Router, Server Actions, Cache Components / Partial Prerendering, `proxy.ts`)
 - **Supabase**: Postgres, Auth, RLS e triggers (`@supabase/ssr` para sessão via cookies)
 - **Tailwind CSS v4** com design system próprio (vidro fosco, SF Pro, cantos de 22px)
+- **Claude API** (`@anthropic-ai/sdk`, Tool Runner) para o assistente Din
+- **PWA**: manifesto, ícones e áreas seguras do iPhone; instalável na tela inicial
 - **Recharts** para gráficos, **Zod** para validação e **lucide-react** para ícones
 - **Web Crypto API** para a criptografia do cofre
 
@@ -72,7 +77,13 @@ npm run dev
 
 1. Crie um projeto em [supabase.com](https://supabase.com) e rode `supabase/migrations/20261117000000_init_schema.sql` no SQL Editor.
 2. Em **Authentication → URL Configuration**, adicione `http://localhost:3000/auth/confirm` às Redirect URLs.
-3. *(Opcional)* Crie uma conta sandbox gratuita em [dashboard.pluggy.ai](https://dashboard.pluggy.ai) e preencha `PLUGGY_CLIENT_ID` e `PLUGGY_CLIENT_SECRET`. Sem elas, o app oferece o **Banco Demo**.
+3. *(Opcional)* Preencha `ANTHROPIC_API_KEY` ([console.anthropic.com](https://console.anthropic.com)) para ativar o Din com IA.
+4. *(Opcional)* Crie uma conta sandbox gratuita em [dashboard.pluggy.ai](https://dashboard.pluggy.ai) e preencha `PLUGGY_CLIENT_ID` e `PLUGGY_CLIENT_SECRET`. Sem elas, o app oferece o **Banco Demo**.
+
+## No celular
+
+- **Na mesma rede Wi‑Fi:** rode `npm run dev:mobile` e abra `http://IP-DO-PC:3000` no celular.
+- **Instalar como app:** depois do deploy (HTTPS), abra o site no Safari ou Chrome e toque em **Compartilhar → Adicionar à Tela de Início**.
 
 ## Deploy (Vercel)
 

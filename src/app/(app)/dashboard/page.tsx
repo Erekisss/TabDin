@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowDownLeft, ArrowUpRight, ChevronRight, Landmark, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, ChevronRight, Landmark, Repeat, Sparkles, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { requireUser } from "@/lib/supabase/server";
 import { money, monthLabel, shortDate, startOfMonthISO } from "@/lib/format";
 import type { Account, Category, Transaction } from "@/lib/types";
 import { CategoryIcon, EmptyState, PageHeader } from "@/components/ui";
 import { CashflowChart, type CashflowPoint } from "./CashflowChart";
 import { BudgetCard } from "./BudgetCard";
+import { findSubscriptions } from "@/lib/insights";
 
 export const metadata: Metadata = { title: "Início" };
 
@@ -97,32 +98,56 @@ export default async function DashboardPage() {
   })).filter((b) => b.category);
 
   const monthName = now.toLocaleDateString("pt-BR", { month: "long" });
+  const prevExpense = cashflow[4]?.despesas ?? 0;
+  const expenseChange = prevExpense > 0 ? Math.round(((expense - prevExpense) / prevExpense) * 100) : null;
+  const subs = await findSubscriptions(supabase);
 
   return (
     <>
       <PageHeader title={`Olá, ${profile?.full_name?.split(" ")[0] ?? ""}`} subtitle={now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })} />
 
-      {/* Hero: saldo total */}
-      <section
-        className="relative overflow-hidden rounded-[28px] p-6 sm:p-8 mb-5 border border-white/10"
-        style={{
-          background:
-            "radial-gradient(120% 140% at 0% 0%, #1b6dff 0%, #0b3a9e 40%, #071f5c 75%, #050f33 100%)",
-          boxShadow: "0 30px 60px -30px rgba(10,132,255,.6), inset 0 1px 0 rgba(255,255,255,.18)",
-        }}
+      {/* Pergunte ao Din */}
+      <Link
+        href="/assistente"
+        className="glass border-brand rounded-full flex items-center gap-3 pl-2 pr-5 h-14 mb-5 group transition hover:bg-white/[0.06]"
       >
-        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/10 blur-3xl" aria-hidden />
-        <p className="text-white/70 text-[15px] font-medium">Saldo total</p>
-        <p className="text-[40px] sm:text-[52px] font-bold tracking-[-0.03em] text-white tabular mt-1">{money(totalBalance)}</p>
-        <div className="flex flex-wrap gap-x-8 gap-y-3 mt-5">
+        <span className="icon-tile w-10 h-10 rounded-full bg-brand">
+          <Sparkles size={18} color="#03140f" />
+        </span>
+        <span className="flex-1 text-label-2 text-[15px] truncate">Pergunte ao Din: &ldquo;onde gastei mais este mês?&rdquo;</span>
+        <ChevronRight size={18} className="text-label-3 transition group-hover:translate-x-0.5" />
+      </Link>
+
+      {/* Hero: saldo total */}
+      <section className="card-hero shine p-6 sm:p-8 mb-5">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-white/60 text-[13px]">Fatura dos cartões</p>
+            <p className="text-white/65 text-[15px] font-medium">Saldo consolidado</p>
+            <p className="font-display text-[40px] sm:text-[54px] font-bold tracking-[-0.04em] text-white tabular mt-1 leading-none">{money(totalBalance)}</p>
+          </div>
+          <Link href="/contas" className="btn-secondary h-9 px-4 text-[13px] shrink-0">
+            Contas <ChevronRight size={14} />
+          </Link>
+        </div>
+        <div className="flex flex-wrap gap-x-8 gap-y-3 mt-6">
+          <div>
+            <p className="text-white/55 text-[13px]">Fatura dos cartões</p>
             <p className="text-white font-semibold tabular">{money(Math.abs(creditDebt))}</p>
           </div>
           <div>
-            <p className="text-white/60 text-[13px]">Contas</p>
+            <p className="text-white/55 text-[13px]">Contas conectadas</p>
             <p className="text-white font-semibold">{accs.length}</p>
           </div>
+          {expenseChange !== null && (
+            <div>
+              <p className="text-white/55 text-[13px]">Gastos vs. mês passado</p>
+              <p className={`font-semibold flex items-center gap-1 ${expenseChange > 0 ? "text-ios-orange" : "text-ios-green"}`}>
+                {expenseChange > 0 ? <TrendingUp size={15} /> : <TrendingDown size={15} />}
+                {expenseChange > 0 ? "+" : ""}
+                {expenseChange}%
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -130,7 +155,7 @@ export default async function DashboardPage() {
       <section className="grid grid-cols-2 gap-4 mb-5">
         <div className="card">
           <div className="flex items-center gap-2 text-label-2 text-[14px]">
-            <span className="icon-tile w-7 h-7 rounded-full" style={{ background: "#1F7FE0" }}>
+            <span className="icon-tile w-7 h-7 rounded-full" style={{ background: "#12A877" }}>
               <ArrowDownLeft size={15} color="white" />
             </span>
             Receitas · {monthName}
@@ -139,7 +164,7 @@ export default async function DashboardPage() {
         </div>
         <div className="card">
           <div className="flex items-center gap-2 text-label-2 text-[14px]">
-            <span className="icon-tile w-7 h-7 rounded-full" style={{ background: "#C86A12" }}>
+            <span className="icon-tile w-7 h-7 rounded-full" style={{ background: "#7B6CF6" }}>
               <ArrowUpRight size={15} color="white" />
             </span>
             Despesas · {monthName}
@@ -171,7 +196,7 @@ export default async function DashboardPage() {
                       <span className="tabular font-medium">{money(value)}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-                      <div className="h-full rounded-full bg-ios-blue" style={{ width: `${(value / maxCat) * 100}%` }} />
+                      <div className="h-full rounded-full bg-brand" style={{ width: `${(value / maxCat) * 100}%` }} />
                     </div>
                   </div>
                 </li>
@@ -182,7 +207,38 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5">
-        <BudgetCard rows={budgetRows} categories={cats.filter((c) => c.type === "expense")} />
+        <div className="space-y-5">
+          <BudgetCard rows={budgetRows} categories={cats.filter((c) => c.type === "expense")} />
+
+          <section>
+            <div className="flex items-center justify-between mb-2">
+              <p className="section-label mb-0">Assinaturas detectadas</p>
+              {subs.count > 0 && <span className="text-[13px] text-label-2 tabular">{money(subs.monthly_total)}/mês</span>}
+            </div>
+            <div className="ios-list">
+              {subs.count === 0 && (
+                <div className="p-5 flex items-center gap-3 text-label-2 text-[15px]">
+                  <Repeat size={20} className="text-brand-2" /> Nenhuma cobrança recorrente encontrada.
+                </div>
+              )}
+              {subs.subscriptions.slice(0, 5).map((sub) => (
+                <div key={sub.name} className="ios-row">
+                  <span className="icon-tile w-9 h-9 bg-gradient-to-br from-ios-indigo to-brand-3">
+                    <Repeat size={16} color="white" />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] truncate">{sub.name}</p>
+                    <p className="text-[13px] text-label-3">Visto em {sub.months_seen} meses · último {shortDate(sub.last_charge)}</p>
+                  </div>
+                  <p className="tabular font-semibold text-[15px]">{money(sub.monthly_amount)}</p>
+                </div>
+              ))}
+            </div>
+            {subs.count > 0 && (
+              <p className="text-[12px] text-label-3 mt-2 px-1">Isso dá {money(subs.yearly_total)} por ano. Pergunte ao Din se vale cortar alguma.</p>
+            )}
+          </section>
+        </div>
 
         <section>
           <div className="flex items-center justify-between mb-2">

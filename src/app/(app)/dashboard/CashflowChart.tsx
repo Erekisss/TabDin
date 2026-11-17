@@ -9,9 +9,9 @@ export interface CashflowPoint {
   despesas: number;
 }
 
-// Paleta validada (scripts/validate_palette.js, modo escuro): CVD ΔE 27 · contraste ≥ 3:1
-const INCOME = "#1F7FE0";
-const EXPENSE = "#C86A12";
+// Paleta validada (validate_palette.js, modo escuro sobre #0a1428): CVD ΔE 23,6 · contraste ≥ 3:1
+const INCOME = "#12A877";
+const EXPENSE = "#7B6CF6";
 
 const compact = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
 
